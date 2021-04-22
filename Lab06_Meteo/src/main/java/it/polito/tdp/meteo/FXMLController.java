@@ -42,6 +42,10 @@ public class FXMLController {
     @FXML
     void doCalcolaSequenza(ActionEvent event) {
     	
+    	Integer mese = this.boxMese.getValue(); 
+    	
+    	this.txtResult.setText("Sequenza ottimale: \n" + model.trovaSequenza(mese)); 
+    	
     }
 
     @FXML

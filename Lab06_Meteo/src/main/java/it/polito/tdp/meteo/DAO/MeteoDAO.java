@@ -41,7 +41,7 @@ public class MeteoDAO {
 
 	public List<Rilevamento> getAllRilevamentiLocalitaMese(int mese, String localita) {
 		
-		final String sql = "SELECT Localita, Data, Umidita FROM situazione WHERE Localita = ?";
+		final String sql = "SELECT Localita, Data, Umidita FROM situazione WHERE Localita = ? ORDER BY Data ASC";
 
 		List<Rilevamento> rilevamenti = new ArrayList<Rilevamento>();
 		
@@ -56,6 +56,37 @@ public class MeteoDAO {
 			while (rs.next()) {
 
 				if (rs.getDate("Data").getMonth() == mese -1) {
+					Rilevamento r = new Rilevamento(rs.getString("Localita"), rs.getDate("Data"), rs.getInt("Umidita"));
+					rilevamenti.add(r);
+				}
+			}
+
+			conn.close();
+			return rilevamenti;
+
+		} catch (SQLException e) {
+
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+	
+	public List<Rilevamento> getAllRilevamentiMese(int mese) {
+		
+		final String sql = "SELECT Localita, Data, Umidita FROM situazione ORDER BY Data ASC";
+
+		List<Rilevamento> rilevamenti = new ArrayList<Rilevamento>();
+		
+
+		try {
+			Connection conn = ConnectDB.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+
+			ResultSet rs = st.executeQuery();
+
+			while (rs.next()) {
+
+				if (rs.getDate("Data").getMonth() == mese -1 && rs.getDate("Data").getDate() <= 15) {
 					Rilevamento r = new Rilevamento(rs.getString("Localita"), rs.getDate("Data"), rs.getInt("Umidita"));
 					rilevamenti.add(r);
 				}
