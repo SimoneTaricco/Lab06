@@ -63,46 +63,32 @@ public class Model {
 	private void creaCombinazione(ArrayList<Rilevamento> parziale, int livello, HashMap<String,Rilevamento> tracciaCitta, int numeroCitta) {  
 		
 		// Livello = indice nell'insieme partenza
-		int costo = 0;
-		costo = sommaCosto(parziale,livello);	
-		int numerovisite;
+		int costo = sommaCosto(parziale,livello);
 		
-		int contatoreCitta = 0;	
-				
-		if (livello == partenza.size() && costo<costoSoluzioneMigliore && tracciaCitta.size() == numeroCitta && parziale.size()>= soluzioneMigliore.size()) {
-			//System.out.println(parziale);
-			soluzioneMigliore = new ArrayList<>(parziale);
-			System.out.println(costo);
-			costoSoluzioneMigliore = costo;
-			numerovisite = parziale.size();
-		}
+		System.out.println(parziale);
 		
 		//alla fine dello scorrimento della lista
-		if (livello==partenza.size()) {
-			return;
-		}		
-		
-
-		if (parziale.size()>0){
-			
-			//fa in modo che non si considerino due date dello stesso giorno
-			while (parziale.get(parziale.size()-1).getData().equals(partenza.get(livello).getData()) && livello<partenza.size()-1) {
-				livello++;
+		if (livello==partenza.size()) {			
+			if (costo<costoSoluzioneMigliore && tracciaCitta.size() == numeroCitta && parziale.size() >= soluzioneMigliore.size()) {
+				System.out.println(parziale);
+				soluzioneMigliore = new ArrayList<>(parziale);
+				costoSoluzioneMigliore = costo;
 			}
+			return;
+		}	
 		
-			//non ci si può spostare prima di tre giorni
-			while(partenza.get(livello).getData().getDate()-parziale.get(parziale.size()-1).getData().getDate()<3 && livello<partenza.size()-1)
-				livello++;
-		}
+		if (!aggiuntaValida(partenza.get(livello),parziale)) {
+			return;
+		} 
 					
-		
 		parziale.add(partenza.get(livello));
-		tracciaCitta.put(partenza.get(livello).getLocalita(), partenza.get(livello));
+		//tracciaCitta.put(partenza.get(livello).getLocalita(), partenza.get(livello));
 		creaCombinazione(parziale,livello+1,tracciaCitta,numeroCitta);
 		
 		parziale.remove(partenza.get(livello));
-		tracciaCitta.remove(partenza.get(livello).getLocalita());
-		creaCombinazione(parziale,livello+1,tracciaCitta,numeroCitta);		
+		//tracciaCitta.remove(partenza.get(livello).getLocalita());
+		creaCombinazione(parziale,livello+1,tracciaCitta,numeroCitta);	
+		
 	}
 	
 	public int numeroCitta() {
@@ -122,6 +108,48 @@ public class Model {
 		}	
 		
 		return somma;
+	}
+	
+	private boolean aggiuntaValida(Rilevamento prova, List<Rilevamento> parziale) {
+		
+		//verifica giorni massimi
+		//contiamo quante volte la città 'prova' era già apparsa nell'attuale lista costruita fin qui
+		int conta = 0;
+		for (Rilevamento precedente:parziale) {
+			if (precedente.getLocalita().equals(prova.getLocalita()))
+				conta++; 
+		}
+		if (conta >= NUMERO_GIORNI_CITTA_MAX)
+			return false;
+		
+		/*if (parziale.size() > 0 && prova.getData().equals(parziale.get(parziale.size()-1).getData()))
+			return false;*/
+		
+		// verifica dei giorni minimi
+		if (parziale.size()==0) //primo giorno posso inserire qualsiasi città
+				return true;
+		if (parziale.size()==1 || parziale.size()==2) {
+			//siamo al secondo o terzo giorno, non posso cambiare
+			//quindi l'aggiunta è valida solo se la città di prova coincide con la sua precedente
+			System.out.println("Size: 1");
+			if (prova.getLocalita().equals(parziale.get(parziale.size()-1).getLocalita()))
+				return true;
+			else
+				return false; 
+		}
+		
+		//nel caso generale, se ho già passato i controlli sopra, non c'è nulla che mi vieta di rimanere nella stessa città
+		//quindi per i giorni successivi ai primi tre posso sempre rimanere
+		if (parziale.get(parziale.size()-1).getLocalita().equals(prova.getLocalita()))
+			return true; 
+		
+		// se cambio città mi devo assicurare che nei tre giorni precedenti sono rimasto fermo 
+		if (parziale.get(parziale.size()-1).getLocalita().equals(parziale.get(parziale.size()-2).getLocalita()) 
+		&& parziale.get(parziale.size()-2).getLocalita().equals(parziale.get(parziale.size()-3).getLocalita()))
+			return true;
+			
+		return false;
+		
 	}
 	
 	
